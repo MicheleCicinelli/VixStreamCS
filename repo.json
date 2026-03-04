@@ -2,9 +2,7 @@
   "name": "MikeCic Repository",
   "iconUrl": "https://raw.githubusercontent.com/MicheleCicinelli/VixStreamCS/builds/repo_icon.png",
   "description": "Repository con provider VixSrc e catalogo TMDB",
-  "manifestVersion": 1,
   "pluginLists": [
     "https://raw.githubusercontent.com/MicheleCicinelli/VixStreamCS/builds/plugins.json"
   ]
 }
-
