@@ -7,7 +7,7 @@ apply(plugin = "com.android.library")
 apply(plugin = "kotlin-android")
 apply(plugin = "com.lagradost.cloudstream3.gradle")
 
-version = 1
+version = 2
 
 fun Project.cloudstream(configuration: CloudstreamExtension.() -> Unit) = extensions.getByName<CloudstreamExtension>("cloudstream").configuration()
 fun Project.android(configuration: BaseExtension.() -> Unit) = extensions.getByName<BaseExtension>("android").configuration()
@@ -15,7 +15,7 @@ fun Project.android(configuration: BaseExtension.() -> Unit) = extensions.getByN
 cloudstream {
     description = "Film e SerieTV via VixSrc con catalogo TMDB"
     authors = listOf("MC")
-    version = 1
+    version = 2
     status = 1
     tvTypes = listOf("TvSeries", "Movie")
     language = "it"
@@ -40,7 +40,8 @@ android {
             freeCompilerArgs.addAll(
                 "-Xno-call-assertions",
                 "-Xno-param-assertions",
-                "-Xno-receiver-assertions"
+                "-Xno-receiver-assertions",
+                "-Xannotation-default-target=param-property"
             )
         }
     }
@@ -54,8 +55,9 @@ dependencies {
 
     implementation(kotlin("stdlib"))
     implementation("com.github.Blatzar:NiceHttp:0.4.16")
-    implementation("org.jsoup:jsoup:1.16.1")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    implementation("org.jsoup:jsoup:1.22.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.20.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
     implementation("com.google.code.gson:gson:2.10.1")
 }

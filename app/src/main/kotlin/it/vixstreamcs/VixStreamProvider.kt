@@ -6,10 +6,10 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addScore
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.metaproviders.TmdbProvider
 import com.fasterxml.jackson.annotation.JsonProperty
+import kotlinx.coroutines.*
 
-class VixStreamCS : TmdbProvider() {
+class VixStreamCS : MainAPI() {
     override var name = "VixStreamCS"
     override var mainUrl = "https://vixsrc.to"
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
@@ -17,7 +17,7 @@ class VixStreamCS : TmdbProvider() {
     override val hasMainPage = true
 
     private val tmdbAPI = "https://api.themoviedb.org/3"
-    private val apiKey = "28bd82fffe57c8854946f191d7276bf7" // Recuperata dai sorgenti forniti
+    private val apiKey = "28bd82fffe57c8854946f191d7276bf7"
 
     override val mainPage = mainPageOf(
         "$tmdbAPI/trending/all/day?language=it-IT&api_key=$apiKey" to "In Tendenza",
@@ -61,17 +61,22 @@ class VixStreamCS : TmdbProvider() {
             }
         } else {
             val episodes = mutableListOf<Episode>()
-            res.seasons?.forEach { season ->
-                val sUrl = "$tmdbAPI/tv/${res.id}/season/${season.seasonNumber}?api_key=$apiKey&language=it-IT"
-                val sRes = app.get(sUrl).parsedSafe<TmdbSeason>()
-                sRes?.episodes?.forEach { ep ->
-                    episodes.add(newEpisode(TmdbData(res.id, "tv", season.seasonNumber, ep.episodeNumber).toJson()) {
-                        this.name = ep.name
-                        this.season = season.seasonNumber
-                        this.episode = ep.episodeNumber
-                        this.posterUrl = getImageUrl(ep.stillPath)
-                        this.description = ep.overview
-                    })
+            coroutineScope {
+                res.seasons?.map { season ->
+                    async {
+                        val sUrl = "$tmdbAPI/tv/${res.id}/season/${season.seasonNumber}?api_key=$apiKey&language=it-IT"
+                        app.get(sUrl).parsedSafe<TmdbSeason>()?.episodes?.map { ep ->
+                            newEpisode(TmdbData(res.id, "tv", season.seasonNumber, ep.episodeNumber).toJson()) {
+                                this.name = ep.name
+                                this.season = season.seasonNumber
+                                this.episode = ep.episodeNumber
+                                this.posterUrl = getImageUrl(ep.stillPath)
+                                this.description = ep.overview
+                            }
+                        }
+                    }
+                }?.awaitAll()?.filterNotNull()?.flatten()?.let { 
+                    episodes.addAll(it)
                 }
             }
 
@@ -130,51 +135,51 @@ class VixStreamCS : TmdbProvider() {
             }
         }
     }
-
-    data class TmdbData(
-        val id: Int,
-        val type: String,
-        val season: Int? = null,
-        val episode: Int? = null
-    )
-
-    data class TmdbResults(
-        @JsonProperty("results") val results: List<TmdbResult>? = null
-    )
-
-    data class TmdbResult(
-        @JsonProperty("id") val id: Int,
-        @JsonProperty("media_type") val mediaType: String? = null,
-        @JsonProperty("title") val title: String? = null,
-        @JsonProperty("name") val name: String? = null,
-        @JsonProperty("poster_path") val posterPath: String? = null
-    )
-
-    data class TmdbDetails(
-        @JsonProperty("id") val id: Int,
-        @JsonProperty("title") val title: String? = null,
-        @JsonProperty("name") val name: String? = null,
-        @JsonProperty("overview") val overview: String? = null,
-        @JsonProperty("poster_path") val posterPath: String? = null,
-        @JsonProperty("backdrop_path") val backdropPath: String? = null,
-        @JsonProperty("release_date") val releaseDate: String? = null,
-        @JsonProperty("first_air_date") val firstAirDate: String? = null,
-        @JsonProperty("vote_average") val voteAverage: Double? = null,
-        @JsonProperty("seasons") val seasons: List<TmdbSeasonInfo>? = null
-    )
-
-    data class TmdbSeasonInfo(
-        @JsonProperty("season_number") val seasonNumber: Int
-    )
-
-    data class TmdbSeason(
-        @JsonProperty("episodes") val episodes: List<TmdbEpisode>? = null
-    )
-
-    data class TmdbEpisode(
-        @JsonProperty("episode_number") val episodeNumber: Int,
-        @JsonProperty("name") val name: String? = null,
-        @JsonProperty("overview") val overview: String? = null,
-        @JsonProperty("still_path") val stillPath: String? = null
-    )
 }
+
+data class TmdbData(
+    @JsonProperty("id") val id: Int,
+    @JsonProperty("type") val type: String,
+    @JsonProperty("season") val season: Int? = null,
+    @JsonProperty("episode") val episode: Int? = null
+)
+
+data class TmdbResults(
+    @JsonProperty("results") val results: List<TmdbResult>? = null
+)
+
+data class TmdbResult(
+    @JsonProperty("id") val id: Int,
+    @JsonProperty("media_type") val mediaType: String? = null,
+    @JsonProperty("title") val title: String? = null,
+    @JsonProperty("name") val name: String? = null,
+    @JsonProperty("poster_path") val posterPath: String? = null
+)
+
+data class TmdbDetails(
+    @JsonProperty("id") val id: Int,
+    @JsonProperty("title") val title: String? = null,
+    @JsonProperty("name") val name: String? = null,
+    @JsonProperty("overview") val overview: String? = null,
+    @JsonProperty("poster_path") val posterPath: String? = null,
+    @JsonProperty("backdrop_path") val backdropPath: String? = null,
+    @JsonProperty("release_date") val releaseDate: String? = null,
+    @JsonProperty("first_air_date") val firstAirDate: String? = null,
+    @JsonProperty("vote_average") val voteAverage: Double? = null,
+    @JsonProperty("seasons") val seasons: List<TmdbSeasonInfo>? = null
+)
+
+data class TmdbSeasonInfo(
+    @JsonProperty("season_number") val seasonNumber: Int
+)
+
+data class TmdbSeason(
+    @JsonProperty("episodes") val episodes: List<TmdbEpisode>? = null
+)
+
+data class TmdbEpisode(
+    @JsonProperty("episode_number") val episodeNumber: Int,
+    @JsonProperty("name") val name: String? = null,
+    @JsonProperty("overview") val overview: String? = null,
+    @JsonProperty("still_path") val stillPath: String? = null
+)
