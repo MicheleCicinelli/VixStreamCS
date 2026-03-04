@@ -1,2 +1,3 @@
 rootProject.name = "VixStreamCS"
-include(":app")
+include(":VixStreamCS")
+project(":VixStreamCS").projectDir = file("app")
