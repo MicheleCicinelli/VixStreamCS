@@ -1,11 +1,15 @@
 [
   {
     "name": "VixStreamCS",
-    "url": "VixStreamCS.cs3",
-    "version": 1,
+    "internalName": "VixStreamCS",
     "authors": ["MC"],
     "description": "Film e SerieTV via VixSrc con catalogo TMDB",
+    "url": "https://raw.githubusercontent.com/MicheleCicinelli/VixStreamCS/builds/VixStreamCS.cs3",
+    "version": 1,
+    "apiVersion": 1,
+    "status": 1,
     "tvTypes": ["TvSeries", "Movie"],
-    "language": "it"
+    "language": "it",
+    "repositoryUrl": "https://github.com/MicheleCicinelli/VixStreamCS"
   }
 ]
