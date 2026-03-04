@@ -3,7 +3,7 @@
     "name": "VixStreamCS",
     "url": "VixStreamCS.cs3",
     "version": 1,
-    "authors": ["Gemini"],
+    "authors": ["MC"],
     "description": "Film e SerieTV via VixSrc con catalogo TMDB",
     "tvTypes": ["TvSeries", "Movie"],
     "language": "it"
