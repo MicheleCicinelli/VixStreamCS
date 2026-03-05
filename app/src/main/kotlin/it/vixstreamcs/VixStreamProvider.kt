@@ -23,6 +23,16 @@ class VixStreamCS : MainAPI() {
         "$tmdbAPI/trending/all/day?language=it-IT&api_key=$apiKey" to "In Tendenza",
         "$tmdbAPI/movie/popular?language=it-IT&api_key=$apiKey" to "Film Popolari",
         "$tmdbAPI/tv/popular?language=it-IT&api_key=$apiKey" to "Serie TV Popolari",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=28&sort_by=popularity.desc" to "Film d'Azione",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=12&sort_by=popularity.desc" to "Film d'Avventura",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=16&sort_by=popularity.desc" to "Animazione",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=35&sort_by=popularity.desc" to "Commedie",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=18&sort_by=popularity.desc" to "Drammatici",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=14&sort_by=popularity.desc" to "Fantasy",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=27&sort_by=popularity.desc" to "Horror",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=878&sort_by=popularity.desc" to "Fantascienza",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=53&sort_by=popularity.desc" to "Thriller",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=it-IT&with_genres=10749&sort_by=popularity.desc" to "Romantici",
         "$tmdbAPI/movie/top_rated?language=it-IT&api_key=$apiKey" to "Film Più Votati",
         "$tmdbAPI/tv/top_rated?language=it-IT&api_key=$apiKey" to "Serie TV Più Votate"
     )
