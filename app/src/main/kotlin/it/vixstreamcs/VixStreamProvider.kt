@@ -40,7 +40,17 @@ class VixStreamCS : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val data = parseJson<TmdbData>(url)
+        val data = if (url.startsWith("{")) {
+            parseJson<TmdbData>(url)
+        } else if (url.contains("themoviedb.org")) {
+            val id = url.substringAfterLast("/").substringBefore("?").toIntOrNull() ?: throw ErrorLoadingException("ID TMDB non valido")
+            val type = if (url.contains("/movie/")) "movie" else "tv"
+            TmdbData(id, type)
+        } else {
+            // Se non è JSON né URL TMDB, proviamo a vedere se è solo un ID numerico (caso raro)
+            url.toIntOrNull()?.let { TmdbData(it, "movie") } ?: throw ErrorLoadingException("Formato URL non supportato: $url")
+        }
+
         val append = "external_ids,videos,credits,recommendations"
         val resUrl = if (data.type == "movie") {
             "$tmdbAPI/movie/${data.id}?api_key=$apiKey&language=it-IT&append_to_response=$append"
@@ -48,7 +58,7 @@ class VixStreamCS : MainAPI() {
             "$tmdbAPI/tv/${data.id}?api_key=$apiKey&language=it-IT&append_to_response=$append"
         }
 
-        val res = app.get(resUrl).parsedSafe<TmdbDetails>() ?: throw ErrorLoadingException("Errore nel caricamento dei dettagli")
+        val res = app.get(resUrl).parsedSafe<TmdbDetails>() ?: throw ErrorLoadingException("Errore nel caricamento dei dettagli da TMDB")
 
         return if (data.type == "movie") {
             newMovieLoadResponse(res.title ?: res.name ?: "", url, TvType.Movie, data.toJson()) {
