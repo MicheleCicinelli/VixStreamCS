@@ -7,7 +7,7 @@ apply(plugin = "com.android.library")
 apply(plugin = "kotlin-android")
 apply(plugin = "com.lagradost.cloudstream3.gradle")
 
-version = 2
+version = 3
 
 fun Project.cloudstream(configuration: CloudstreamExtension.() -> Unit) = extensions.getByName<CloudstreamExtension>("cloudstream").configuration()
 fun Project.android(configuration: BaseExtension.() -> Unit) = extensions.getByName<BaseExtension>("android").configuration()
@@ -15,7 +15,7 @@ fun Project.android(configuration: BaseExtension.() -> Unit) = extensions.getByN
 cloudstream {
     description = "Film e SerieTV via VixSrc con catalogo TMDB"
     authors = listOf("MC")
-    version = 4
+    version = 5
     status = 1
     tvTypes = listOf("TvSeries", "Movie")
     language = "it"

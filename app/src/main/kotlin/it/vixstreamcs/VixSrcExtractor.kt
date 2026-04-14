@@ -20,7 +20,22 @@ class VixSrcExtractor : ExtractorApi() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
-        val playlistUrl = getPlaylistLink(url, referer ?: "https://vixsrc.to/")
+        val finalUrl = if ("/movie/" in url || "/tv/" in url) {
+            val apiUrl = url.replace("https://vixsrc.to/movie/", "https://vixsrc.to/api/movie/")
+                .replace("https://vixsrc.to/tv/", "https://vixsrc.to/api/tv/")
+            
+            try {
+                val apiResp = app.get(apiUrl, headers = mapOf("Referer" to url)).text
+                val src = JSONObject(apiResp).getString("src")
+                if (src.startsWith("/")) "https://vixsrc.to$src" else src
+            } catch (e: Exception) {
+                url
+            }
+        } else {
+            url
+        }
+
+        val playlistUrl = getPlaylistLink(finalUrl, referer ?: "https://vixsrc.to/")
 
         callback.invoke(
             newExtractorLink(
