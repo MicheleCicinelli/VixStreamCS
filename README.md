@@ -3,9 +3,9 @@
 Estensione per l'app Android [CloudStream](https://github.com/recloudstream/cloudstream) che utilizza il catalogo di **TMDB (The Movie Database)** per la navigazione e il sito **vixsrc.to** come sorgente per i contenuti streaming (Film e Serie TV).
 
 ## Caratteristiche
-- **Versione 3**: Supporto avanzato per caricamento diretto da URL TMDB e JSON.
+- **Versione 5**: Fix critico per l'estrattore VixSrc (supporto Next.js API).
 - **Catalogo TMDB**: Utilizza le API ufficiali di TMDB per fornire locandine, trame, voti e metadati accurati.
-- **Sorgente VixSrc**: Integra l'estrattore per `vixsrc.to` che fornisce flussi video in formato M3U8.
+- **Sorgente VixSrc**: Integra l'estrattore per `vixsrc.to` che fornisce flussi video in formato M3U8 tramite risoluzione dinamica degli embed.
 - **Supporto Multiplo**: Gestione completa di Film e Serie TV con selezione di stagioni ed episodi.
 - **Lingua**: Interfaccia e metadati configurati per la lingua italiana.
 
@@ -38,6 +38,7 @@ Puoi aggiungere l'estensione tramite il repository ufficiale:
 
 ## Note Tecniche
 - **Metodo Load**: Gestisce sia input JSON (`TmdbData`) che URL di TMDB.
+- **Estrattore VixSrc**: Risolve i link video interrogando prima le API interne del sito per ottenere l'iframe di embed, garantendo la compatibilità con le protezioni lato client.
 - **Offuscamento**: Configurato per proteggere i DTO tramite annotazioni Jackson e compiler flags specifiche.
 
 ## Note Legali
