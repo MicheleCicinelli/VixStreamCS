@@ -3,6 +3,7 @@ package it.vixstreamcs
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTMDbId
 import com.lagradost.cloudstream3.LoadResponse.Companion.addScore
+import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -70,6 +71,9 @@ class VixStreamCS : MainAPI() {
 
         val res = app.get(resUrl).parsedSafe<TmdbDetails>() ?: throw ErrorLoadingException("Errore nel caricamento dei dettagli da TMDB")
 
+        val trailerUrl = res.videos?.results?.firstOrNull { it.type == "Trailer" && it.site == "YouTube" && it.language == "it" }?.key?.let { "https://www.youtube.com/watch?v=$it" }
+            ?: res.videos?.results?.firstOrNull { it.type == "Trailer" && it.site == "YouTube" }?.key?.let { "https://www.youtube.com/watch?v=$it" }
+
         return if (data.type == "movie") {
             newMovieLoadResponse(res.title ?: res.name ?: "", url, TvType.Movie, data.toJson()) {
                 this.posterUrl = getImageUrl(res.posterPath)
@@ -78,6 +82,7 @@ class VixStreamCS : MainAPI() {
                 this.plot = res.overview
                 this.addTMDbId(res.id.toString())
                 this.addScore(res.voteAverage?.toString())
+                this.addTrailer(trailerUrl)
             }
         } else {
             val episodes = mutableListOf<Episode>()
@@ -107,6 +112,7 @@ class VixStreamCS : MainAPI() {
                 this.plot = res.overview
                 this.addTMDbId(res.id.toString())
                 this.addScore(res.voteAverage?.toString())
+                this.addTrailer(trailerUrl)
             }
         }
     }
@@ -186,7 +192,19 @@ data class TmdbDetails(
     @JsonProperty("release_date") val releaseDate: String? = null,
     @JsonProperty("first_air_date") val firstAirDate: String? = null,
     @JsonProperty("vote_average") val voteAverage: Double? = null,
-    @JsonProperty("seasons") val seasons: List<TmdbSeasonInfo>? = null
+    @JsonProperty("seasons") val seasons: List<TmdbSeasonInfo>? = null,
+    @JsonProperty("videos") val videos: TmdbVideos? = null
+)
+
+data class TmdbVideos(
+    @JsonProperty("results") val results: List<TmdbVideo>? = null
+)
+
+data class TmdbVideo(
+    @JsonProperty("key") val key: String? = null,
+    @JsonProperty("site") val site: String? = null,
+    @JsonProperty("type") val type: String? = null,
+    @JsonProperty("iso_639_1") val language: String? = null
 )
 
 data class TmdbSeasonInfo(
