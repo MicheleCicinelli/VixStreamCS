@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import java.util.Properties
 
 apply(plugin = "com.android.library")
-apply(plugin = "kotlin-android")
 apply(plugin = "com.lagradost.cloudstream3.gradle")
 
 version = 3
