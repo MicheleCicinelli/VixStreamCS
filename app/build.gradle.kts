@@ -25,8 +25,8 @@ cloudstream {
 android {
     namespace = "it.vixstreamcs"
 
-    buildFeatures {
-        buildConfig = true
+    extensions.configure<com.android.build.gradle.BaseExtension> {
+        buildFeatures.buildConfig = true
     }
 
     defaultConfig {
