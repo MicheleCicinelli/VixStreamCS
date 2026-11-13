@@ -1,4 +1,4 @@
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.CommonExtension
 import com.lagradost.cloudstream3.gradle.CloudstreamExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
@@ -10,13 +10,16 @@ apply(plugin = "com.lagradost.cloudstream3.gradle")
 
 version = 3
 
-fun Project.cloudstream(configuration: CloudstreamExtension.() -> Unit) = extensions.getByName<CloudstreamExtension>("cloudstream").configuration()
-fun Project.android(configuration: BaseExtension.() -> Unit) = extensions.getByName<BaseExtension>("android").configuration()
+fun Project.cloudstream(configuration: CloudstreamExtension.() -> Unit) =
+    extensions.getByName<CloudstreamExtension>("cloudstream").configuration()
+
+fun Project.android(configuration: CommonExtension<*, *, *, *, *, *>.() -> Unit) =
+    extensions.getByName<CommonExtension<*, *, *, *, *, *>>("android").configuration()
 
 cloudstream {
     description = "Film e SerieTV via VixSrc con catalogo TMDB"
     authors = listOf("MC")
-    version = 10
+    version = 11
     status = 1
     tvTypes = listOf("TvSeries", "Movie")
     language = "it"
@@ -26,9 +29,7 @@ cloudstream {
 android {
     namespace = "it.vixstreamcs"
 
-    extensions.configure<com.android.build.gradle.BaseExtension> {
-        buildFeatures.buildConfig = true
-    }
+    buildFeatures.buildConfig = true
 
     defaultConfig {
         minSdk = 21
