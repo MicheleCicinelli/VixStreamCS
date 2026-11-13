@@ -16,7 +16,7 @@ fun Project.android(configuration: BaseExtension.() -> Unit) = extensions.getByN
 cloudstream {
     description = "Film e SerieTV via VixSrc con catalogo TMDB"
     authors = listOf("MC")
-    version = 8
+    version = 9
     status = 1
     tvTypes = listOf("TvSeries", "Movie")
     language = "it"
