@@ -2,6 +2,7 @@ import com.android.build.gradle.BaseExtension
 import com.lagradost.cloudstream3.gradle.CloudstreamExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import java.util.Properties
 
 apply(plugin = "com.android.library")
 apply(plugin = "kotlin-android")
@@ -15,7 +16,7 @@ fun Project.android(configuration: BaseExtension.() -> Unit) = extensions.getByN
 cloudstream {
     description = "Film e SerieTV via VixSrc con catalogo TMDB"
     authors = listOf("MC")
-    version = 6
+    version = 7
     status = 1
     tvTypes = listOf("TvSeries", "Movie")
     language = "it"
@@ -23,10 +24,33 @@ cloudstream {
 
 android {
     namespace = "it.vixstreamcs"
+
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         minSdk = 21
         compileSdkVersion(35)
         targetSdk = 35
+
+        val properties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+        } else {
+            logger.warn("local.properties non trovato. La chiave TMDB_API_KEY sarà vuota.")
+        }
+
+        val tmdbApiKey = properties.getProperty("TMDB_API_KEY")
+            ?: System.getenv("TMDB_API_KEY")
+            ?: ""
+
+        if (tmdbApiKey.isEmpty()) {
+            logger.warn("TMDB_API_KEY non impostata. L'estensione non funzionerà correttamente.")
+        }
+
+        buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
     }
 
     compileOptions {
@@ -50,7 +74,7 @@ android {
 dependencies {
     val implementation by configurations
     val cloudstream by configurations
-    
+
     cloudstream("com.lagradost:cloudstream3:pre-release")
 
     implementation(kotlin("stdlib"))

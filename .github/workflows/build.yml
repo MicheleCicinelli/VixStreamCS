@@ -1,0 +1,53 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout builds branch
+        uses: actions/checkout@v4
+        with:
+          ref: builds
+          path: builds
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build plugins
+        working-directory: src
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: |
+          chmod +x gradlew
+          ./gradlew make makePluginsJson
+
+      - name: Copy artifacts
+        run: |
+          rm -f builds/*.cs3 || true
+          cp src/**/build/*.cs3 builds/ || true
+          cp src/build/plugins.json builds/ || true
+
+      - name: Commit and push
+        working-directory: builds
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Build update" || exit 0
+          git push

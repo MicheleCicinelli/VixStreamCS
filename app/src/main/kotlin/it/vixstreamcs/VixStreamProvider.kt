@@ -9,8 +9,6 @@ import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.fasterxml.jackson.annotation.JsonProperty
 import kotlinx.coroutines.*
-import java.util.Properties
-import io.github.cdimascio.dotenv.dotenv
 
 class VixStreamCS : MainAPI() {
     override var name = "VixStreamCS"
@@ -21,35 +19,42 @@ class VixStreamCS : MainAPI() {
 
     private val tmdbAPI = "https://api.themoviedb.org/3"
 
-    private val dotenv = dotEnv()
-    private val apiKey: String? = System.getenv("TMDB_API_KEY") ?: dotenv["TMDB_API_KEY"]
+    // BuildConfig generato da local.properties (vedi build.gradle.kts)
+    private val apiKey: String = BuildConfig.TMDB_API_KEY.also {
+        if (it.isBlank()) {
+            throw IllegalStateException(
+                "TMDB_API_KEY non impostata. Aggiungila in local.properties"
+            )
+        }
+    }
 
     override val mainPage = mainPageOf(
-        "$tmdbAPI/trending/all/day?language=it-IT&api_key=$apiKey?" to "In Tendenza",
-        "$tmdbAPI/movie/popular?language=it-IT&api_key=$apiKey?" to "Film Popolari",
-        "$tmdbAPI/tv/popular?language=it-IT&api_key=$apiKey?" to "Serie TV Popolari",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=28&sort_by=popularity.desc" to "Film d'Azione",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=12&sort_by=popularity.desc" to "Film d'Avventura",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=16&sort_by=popularity.desc" to "Animazione",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=35&sort_by=popularity.desc" to "Commedie",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=18&sort_by=popularity.desc" to "Drammatici",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=14&sort_by=popularity.desc" to "Fantasy",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=27&sort_by=popularity.desc" to "Horror",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=878&sort_by=popularity.desc" to "Fantascienza",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=53&sort_by=popularity.desc" to "Thriller",
-        "$tmdbAPI/discover/movie?api_key=$apiKey?&language=it-IT&with_genres=10749&sort_by=popularity.desc" to "Romantici",
-        "$tmdbAPI/movie/top_rated?language=it-IT&api_key=$apiKey?" to "Film Più Votati",
-        "$tmdbAPI/tv/top_rated?language=it-IT&api_key=$apiKey?" to "Serie TV Più Votate"
+        "$tmdbAPI/trending/all/day?language=it-IT&api_key=$apiKey" to "In Tendenza",
+        "$tmdbAPI/movie/popular?language=it-IT&api_key=$apiKey" to "Film Popolari",
+        "$tmdbAPI/tv/popular?language=it-IT&api_key=$apiKey" to "Serie TV Popolari",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=28&sort_by=popularity.desc" to "Film d'Azione",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=12&sort_by=popularity.desc" to "Film d'Avventura",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=16&sort_by=popularity.desc" to "Animazione",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=35&sort_by=popularity.desc" to "Commedie",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=18&sort_by=popularity.desc" to "Drammatici",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=14&sort_by=popularity.desc" to "Fantasy",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=27&sort_by=popularity.desc" to "Horror",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=878&sort_by=popularity.desc" to "Fantascienza",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=53&sort_by=popularity.desc" to "Thriller",
+        "$tmdbAPI/discover/movie?language=it-IT&api_key=$apiKey&with_genres=10749&sort_by=popularity.desc" to "Romantici",
+        "$tmdbAPI/movie/top_rated?language=it-IT&api_key=$apiKey" to "Film Più Votati",
+        "$tmdbAPI/tv/top_rated?language=it-IT&api_key=$apiKey" to "Serie TV Più Votate"
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val response = app.get("${request.data}&page=$page").parsedSafe<TmdbResults>()
-        val home = response?.results?.mapNotNull { it.toSearchResponse() } ?: throw ErrorLoadingException("Nessun risultato da TMDB")
+        val home = response?.results?.mapNotNull { it.toSearchResponse() }
+            ?: throw ErrorLoadingException("Nessun risultato da TMDB")
         return newHomePageResponse(request.name, home)
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
-        val url = "$tmdbAPI/search/multi?api_key=$apiKey?&language=it-IT&query=$query&include_adult=true"
+        val url = "$tmdbAPI/search/multi?language=it-IT&api_key=$apiKey&query=$query&include_adult=true"
         val response = app.get(url).parsedSafe<TmdbResults>()
         return response?.results?.mapNotNull { it.toSearchResponse() } ?: emptyList()
     }
@@ -58,25 +63,31 @@ class VixStreamCS : MainAPI() {
         val data = if (url.startsWith("{")) {
             parseJson<TmdbData>(url)
         } else if (url.contains("themoviedb.org")) {
-            val id = url.substringAfterLast("/").substringBefore("?").toIntOrNull() ?: throw ErrorLoadingException("ID TMDB non valido")
+            val id = url.substringAfterLast("/").substringBefore("?").toIntOrNull()
+                ?: throw ErrorLoadingException("ID TMDB non valido")
             val type = if (url.contains("/movie/")) "movie" else "tv"
             TmdbData(id, type)
         } else {
-            // Se non è JSON né URL TMDB, proviamo a vedere se è solo un ID numerico (caso raro)
-            url.toIntOrNull()?.let { TmdbData(it, "movie") } ?: throw ErrorLoadingException("Formato URL non supportato: $url")
+            url.toIntOrNull()?.let { TmdbData(it, "movie") }
+                ?: throw ErrorLoadingException("Formato URL non supportato: $url")
         }
 
         val append = "external_ids,videos,credits,recommendations"
         val resUrl = if (data.type == "movie") {
-            "$tmdbAPI/movie/${data.id}?api_key=$apiKey?&language=it-IT&append_to_response=$append"
+            "$tmdbAPI/movie/${data.id}?language=it-IT&api_key=$apiKey&append_to_response=$append"
         } else {
-            "$tmdbAPI/tv/${data.id}?api_key=$apiKey?&language=it-IT&append_to_response=$append"
+            "$tmdbAPI/tv/${data.id}?language=it-IT&api_key=$apiKey&append_to_response=$append"
         }
 
-        val res = app.get(resUrl).parsedSafe<TmdbDetails>() ?: throw ErrorLoadingException("Errore nel caricamento dei dettagli da TMDB")
+        val res = app.get(resUrl).parsedSafe<TmdbDetails>()
+            ?: throw ErrorLoadingException("Errore nel caricamento dei dettagli da TMDB")
 
-        val trailerUrl = res.videos?.results?.firstOrNull { it.type == "Trailer" && it.site == "YouTube" && it.language == "it" }?.key?.let { "https://www.youtube.com/watch?v=$it" }
-            ?: res.videos?.results?.firstOrNull { it.type == "Trailer" && it.site == "YouTube" }?.key?.let { "https://www.youtube.com/watch?v=$it" }
+        val trailerUrl = res.videos?.results
+            ?.firstOrNull { it.type == "Trailer" && it.site == "YouTube" && it.language == "it" }
+            ?.key?.let { "https://www.youtube.com/watch?v=$it" }
+            ?: res.videos?.results
+                ?.firstOrNull { it.type == "Trailer" && it.site == "YouTube" }
+                ?.key?.let { "https://www.youtube.com/watch?v=$it" }
 
         return if (data.type == "movie") {
             newMovieLoadResponse(res.title ?: res.name ?: "", url, TvType.Movie, data.toJson()) {
@@ -93,9 +104,11 @@ class VixStreamCS : MainAPI() {
             coroutineScope {
                 res.seasons?.map { season ->
                     async {
-                        val sUrl = "$tmdbAPI/tv/${res.id}/season/${season.seasonNumber}?api_key=$apiKey?&language=it-IT"
+                        val sUrl = "$tmdbAPI/tv/${res.id}/season/${season.seasonNumber}?language=it-IT&api_key=$apiKey"
                         app.get(sUrl).parsedSafe<TmdbSeason>()?.episodes?.map { ep ->
-                            newEpisode(TmdbData(res.id, "tv", season.seasonNumber, ep.episodeNumber).toJson()) {
+                            newEpisode(
+                                TmdbData(res.id, "tv", season.seasonNumber, ep.episodeNumber).toJson()
+                            ) {
                                 this.name = ep.name
                                 this.season = season.seasonNumber
                                 this.episode = ep.episodeNumber
@@ -128,7 +141,7 @@ class VixStreamCS : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val tmdbData = parseJson<TmdbData>(data)
-        
+
         val vixUrl = if (tmdbData.type == "movie") {
             "https://vixsrc.to/movie/${tmdbData.id}"
         } else {
@@ -156,11 +169,19 @@ class VixStreamCS : MainAPI() {
         if (mediaType == "person") return null
         val type = if (mediaType == "movie") TvType.Movie else TvType.TvSeries
         return if (type == TvType.Movie) {
-            newMovieSearchResponse(this.title ?: this.name ?: return null, TmdbData(this.id, "movie").toJson(), type) {
+            newMovieSearchResponse(
+                this.title ?: this.name ?: return null,
+                TmdbData(this.id, "movie").toJson(),
+                type
+            ) {
                 this.posterUrl = getImageUrl(this@toSearchResponse.posterPath)
             }
         } else {
-            newTvSeriesSearchResponse(this.name ?: this.title ?: return null, TmdbData(this.id, "tv").toJson(), type) {
+            newTvSeriesSearchResponse(
+                this.name ?: this.title ?: return null,
+                TmdbData(this.id, "tv").toJson(),
+                type
+            ) {
                 this.posterUrl = getImageUrl(this@toSearchResponse.posterPath)
             }
         }
