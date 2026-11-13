@@ -1,4 +1,4 @@
-import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.dsl.LibraryExtension
 import com.lagradost.cloudstream3.gradle.CloudstreamExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
@@ -13,8 +13,8 @@ version = 3
 fun Project.cloudstream(configuration: CloudstreamExtension.() -> Unit) =
     extensions.getByName<CloudstreamExtension>("cloudstream").configuration()
 
-fun Project.android(configuration: CommonExtension<*, *, *, *, *, *>.() -> Unit) =
-    extensions.getByName<CommonExtension<*, *, *, *, *, *>>("android").configuration()
+fun Project.android(configuration: LibraryExtension.() -> Unit) =
+    extensions.getByName<LibraryExtension>("android").configuration()
 
 cloudstream {
     description = "Film e SerieTV via VixSrc con catalogo TMDB"
