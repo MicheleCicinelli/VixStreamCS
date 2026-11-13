@@ -16,10 +16,11 @@ fun Project.android(configuration: BaseExtension.() -> Unit) = extensions.getByN
 cloudstream {
     description = "Film e SerieTV via VixSrc con catalogo TMDB"
     authors = listOf("MC")
-    version = 7
+    version = 8
     status = 1
     tvTypes = listOf("TvSeries", "Movie")
     language = "it"
+    setRepo(System.getenv("GITHUB_REPOSITORY") ?: "MicheleCicinelli/VixStreamCS")
 }
 
 android {
